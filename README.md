@@ -1,22 +1,56 @@
-# Getting started with a simple flow function
+# wasm-flownet-api
 
-This flow function exposes a HTTP endpoint. You can submit any data to the endpoint via HTTP POST and the flow function will echo it back to you in the HTTP response.
+This flow function exposes a HTTPS POST endpoint for simple log in. 
 
-1. Fork this repo into your own GitHub account.
-2. Go to [Flows.network](https://flows.network/flow/new) to create a new flow.
-3. Import the forked repo from your account into flows.network.
-4. Build and deploy.
-5. You will now get a URL endpoint to access the flow function. It is under the *Lambda Endpoint* section on the flows.network web site. You can test it as follows.
+It accepts two parameters: ```username``` and ```password```
 
-The example below shows how to query a flow function we have already deployed.
-You can type the following URL into any browser's address bar:
+The parameters must be sent as JSON in a HTTPS POST request body.
+
+The api endpoint is: ```https://code.flows.network/lambda/3xcOkrII9F```
+
+
+The flow function checks the password against 4 conditions to determine whether a login attempt
+is successful or not.
+
+The four conditions are:
+```
+ "Is at least 8 characters long",
+ "Starts with an uppercase letter",
+ "Contains both an alphabet character and a number",
+ "Contains a special character"
+```
+A score is used to determine login success. The score initializes at 0, 
+every password condition met increases the score by 25%. A 100% score guarantees successful log in.
+
+## Usage
+
+You can use the `curl` command to access the flow function.
 
 ```
-https://code.flows.network/lambda/j4DPFGufPr?msg=I+am+a+Rustacean
-```
-
-Or, you can use the `curl` command to access the flow function.
+ curl -X POST -H "Content-Type: application/json" -d '{"username":"<your username>", "password":"<your password>"}' https://code.flows.network/lambda/3xcOkrII9F
 
 ```
-curl https://code.flows.network/lambda/j4DPFGufPr?msg=I+am+a+Rustacean
+e.g
+
 ```
+ curl -X POST -H "Content-Type: application/json" -d '{"username":"testuser", "password":"password"}' https://code.flows.network/lambda/3xcOkrII9F
+
+```
+You can also access the flow function using a script. In Javascript for instance, you can do:
+
+```
+const data = { username: "testuser", password: "password" };
+
+fetch('https://code.flows.network/lambda/3xcOkrII9F', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+})
+.then(response => response.text())
+.then(text => console.log(text))
+.catch(error => console.error('An error occurred:', error));
+
+```
+You may also use any other HTTPS client such as Postman or any other that can send a request body to the POST endpoint of this function.
